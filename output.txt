@@ -1,0 +1,2203 @@
+                    INSA 2023
+   Des architectures parallèles
+  Aux programmes parallélisés
+       De la métrologie
+À la mesure de la performance
+                Loi de Brooks :
+“Ne demandez pas à 9 femmes de faire en 1 mois
+         ce qu’une peut faire en 9… ”
+                 Emmanuel Quémener
+      Quelle vue du contexte ?
+    Point de vue d’un physicien...
+●
+    Approche « système » du physicien
+    –   Héritage des calculateurs analogiques
+    –   Le « système » informatique :
+         ●
+             Réseau / matériel / OS / librairies / codes / usages / ...
+●
+    Approche « Saint Thomas »
+    –   Apprentissage inductif par ma seule mesure
+●
+    Approche « pilote d’essai »
+    –   Caractérisation, recherche d’une exploitation optimale...
+
+             Emmanuel QUÉMENER CC BY-NC-SA
+                    December 11, 2023
+                                                                 2/98
+Précautions pour cette présentation
+    Ce que cela ne sera pas !
+ ●
+     Une introduction générale au parallélisme
+     –   Les cours organisés par Lyon Calcul
+     –   https://computing.llnl.gov/tutorials/parallel_comp/
+ ●
+     Une introduction aux langages de parallélisation
+     –   MPI : https://computing.llnl.gov/tutorials/mpi/
+     –   Posix Threads : https://computing.llnl.gov/tutorials/pthreads/
+     –   OpenMP : https://computing.llnl.gov/tutorials/openMP/
+     –   C’est là que j’ai pas mal appris !
+ ●
+     Je veux partager ce qui n’est JAMAIS dit (ou peu...)
+              Emmanuel QUÉMENER CC BY-NC-SA
+                     December 11, 2023
+                                                           3/98
+Centre Blaise Pascal ~ Dryden FR
+   Un petit exemple illustratif
+                                        ●
+                                            Nasa X-29
+                                        ●
+                                            Cellule de F-5
+                                        ●
+                                            Moteur de F-18
+                                        ●
+                                            Train de F-16
+                                        ●
+                                            Etudes
+                                            –   Plans « canard »
+                                            –   Incidence >50°
+                                            –   « Fly-By-Wire »
+ Recycler, réutiliser, explorer de nouveaux domaines...
+        Emmanuel QUÉMENER CC BY-NC-SA
+               December 11, 2023
+                                            4/98
+ Le but : de l’enveloppe de vol...
+… aux enveloppes de parallélisme
+
+                                                           PKDGRAV3
+
+
+
+
+                    25.00
+
+                    20.00
+
+                    15.00
+
+                    10.00            Pthreads
+                                     OpenMP
+                     5.00            MPI
+                                     OpenCL Intel
+                                     OpenCL AMD
+                     0.00            Theory
+                             1
+                            10
+                            19
+                            28
+                            37
+                            46
+                            55
+                            64
+                            73
+
+
+
+
+     Emmanuel QUÉMENER CC BY-NC-SA
+            December 11, 2023
+                                                    5/98
+De la démarche scientifique…
+ … À l’expérience numérique
+
+
+
+
+   Emmanuel QUÉMENER CC BY-NC-SA
+          December 11, 2023
+                                   6/98
+     Quelques définitions & sigles...
+●
+    ALU : Arithmetic & Logic Unit, Unité Arithmétique et Logique
+●
+    CPU : Central Processing Unit, Unité de traitement Centrale,
+●
+    Flops : Floating Point Operations Per Second, Opérations flottantes par seconde
+●
+    (GP)GPU : (General Purpose) Graphical Processing Unit, Circuit graphique
+●
+    MPI : Message Passing Interface, Interface de communication par messages
+●
+    RAM : Random Access Memory, Mémoire à accès aléatoire
+●
+    SMP : Shared Memory Processors, Processeurs à mémoire partagée
+●
+    TDP : Thermal Design Power, Enveloppe thermique
+●
+    Et quelques autres :
+    –   PR : Parallel Rate, taux de parallélisme (NP en MPI, Threads en OpenMP, Blocks, WorkItems en GPU)
+    –   Itops : Iterative Operations Per Second
+    –   QPU : Quantum Processing Unit (program exécuté avec PR=1)
+    –   EPU : Equivalent Processing Unit (PR déduit de l’optimal d’exécution du programme parallèle)
+
+                    Emmanuel QUÉMENER CC BY-NC-SA
+                           December 11, 2023
+                                                                              7/98
+  Travaux physique ou intellectuel
+      Moteurs & Ordinateurs :
+  Des auxiliaires de « puissance »
+
+
+
+                Des anciens temps aux temps modernes...
+
+
+                    Pascaline
+                 De Blaise Pascal
+                      1642
+
+
+  Machine
+D'Anticythère
+                                        De Alan Turing
+   87 av JC
+                                            1943
+
+
+
+                Emmanuel Quemener
+                    12/11/23
+                                                         8/98
+   Le mécanisme d’Anticythère
+Juste pour la beauté de l’ingénierie
+
+
+
+
+               Et ça avant notre ère...
+        Emmanuel Quemener
+            12/11/23
+                                      9/98
+Un computeur : un métier à tisser ?
+  Architecture de Von Neumann
+
+
+
+
+        Emmanuel Quemener
+            12/11/23
+                            10/98
+Architecture de Von Newman
+50 ans d’évolution chez Intel
+                          Intel 4004
+
+
+                                       CC BY-SA
+                                       Appaloosa
+
+
+
+
+                              Cœur
+                          Intel Skylake
+                                                   Input
+                                                     /
+                                                   Ouput
+
+
+
+
+     Emmanuel Quemener
+      December 11, 2023
+                                           11/98
+   Une révolution informatique
+IBM Personal Computer, le « PC »
+
+
+
+
+       Emmanuel Quemener
+           12/11/23
+                           12/98
+  Evolution des cartes mères
+en un clin d’œil, de 1989 à 2002
+
+  80386SX                    80486SX       80486DX4
+
+
+
+
+                                               K7
+ Amd5x86                      K6-2
+
+
+
+        Emmanuel Quemener
+         December 11, 2023
+                                       13/98
+  Evolution des cartes mères
+en un clin d’œil, de 2005 à 2018
+
+
+
+Athlon64 X2                   Threadripper 1950X
+
+
+
+
+         Emmanuel Quemener
+          December 11, 2023
+                                       14/98
+   A l’intérieur d’un socket
+Exemples de 3 quadri-cœurs
+
+
+
+
+    Emmanuel QUÉMENER CC BY-NC-SA
+           December 11, 2023
+                                    15/98
+       Mais maintenant,
+chaque cœur est un cauchemar...
+             Nehalem                         Skylake
+
+
+
+
+     Emmanuel QUÉMENER CC BY-NC-SA
+            December 11, 2023
+                                     16/98
+ Mais tout ça, c’était du PC...
+De 1993 à nos jours, le Top 500
+                     ●
+                           Les catégories :
+                           –   Single Processor
+                           –   SMP : « Symmetric Multi Processor »
+                           –   SIMD : « Simple Instruction Multiple Data »
+                           –   MPP : « Massive Parallel Processor »
+                           –   Constellation : Cœurs >> Nœuds
+                           –   Cluster : machines « génériques »
+                     ●
+                           4 ont « disparu »...
+
+      Emmanuel Quemener
+       December 11, 2023
+                                               17/98
+         « Lois » en informatique
+    La loi de Moore (et son évolution)
+●
+    1965 : « complexité » des transistors tous les ans
+●
+    1975 : x2 des transistors sur processeur tous les 2 ans
+●
+    Actuelle : x2 de « performance » tous les 18 mois
+
+
+
+          # de Transistors                  Performances
+          du processeurs                     du Top 500
+
+
+
+
+            Emmanuel QUÉMENER CC BY-NC-SA
+                   December 11, 2023
+                                            18/98
+            « Lois » en informatique
+         La loi d’Amdahl (et ses limites)
+●
+    Loi d’Amdahl : T=T₁(s+p/n)
+     –   T & T₁ : durées d’exécution & pour n=1
+     –   s & p : % séquentiel & parallèle du code
+     –   n : unités de traitement
+                                                                     Source Wikipedia
+●
+    Accélération=T₁/T=1/(1-p+p/n)
+    Parallel Rate                      N=500                            N=1000
+    Part parallèle        Accélération        Efficacité    Accélération       Efficacité
+          90%                         9.8              2%    9.9 (+0.1%)                1%
+          99%                          83            17%       91 (+9%)                 9%
+          99.9%                      334             66%     500 (+50%)                 50%
+         99.99%                      476             95%     909 (+91%)                 91%
+
+                  Emmanuel QUÉMENER CC BY-NC-SA
+                         December 11, 2023
+                                                                19/98
+              Codes & Performance :
+             Quelles définitions choisir ?
+●
+    Etymologie (Etymonline)
+    –   Code : du latin codex « livre, livre de lois »
+         ●
+             « compilation systématique de lois » (1236)
+         ●
+             « système de communication télégraphique » (1866)
+    –   Performance :
+         ●
+             « accomplissement » (de quelque chose)
+         ●
+             Signification « une chose réalisée » autour des années 1590
+         ●
+             « ensemble de caractéristiques optimales d’un système » (1929)
+    –   Benchmark :
+         ●
+             De « bench-mark », « point de référence pour un contrôle » (1838), sens figuratif depuis 1884 :
+         ●
+             « un problème ou un test standardisé servant de base à l’évaluation ou la comparaison »
+●
+    Et nous choisissons
+    –   Code : les deux :-), Performance : les trois :-), Benchmark : le figuratif
+                   Emmanuel QUÉMENER CC BY-NC-SA
+                          December 11, 2023
+                                                                             20/98
+     Qu’est-ce donc que le Code ?
+    Un protocole d’expérimentation !
+●
+    Dans la cuisine :
+    –   Nous avons les ingrédients, mais nous voulons un plat !
+●
+    Dans le domaine scientifique, 3 formes :
+    –   Simulation : « Au service (discret ?) de la théorie »
+    –   Traitement : pour expérimentateurs « exigeants »
+    –   Visualisation : voir (les choses) pour percevoir (leurs interactions) (et aussi partager !)
+●
+    Chaque exécution est une expérience (et une unique!)
+    –   Recettes : « codes » devenant des « processus »
+    –   Ustensiles : librairies, OS, matériels, réseaux, ...
+    –   Ingrédients : modélisation, données
+    –   Exécution : et une expérience NE peut se réduire à ses résultats !
+                  Emmanuel QUÉMENER CC BY-NC-SA
+                         December 11, 2023
+                                                                   21/98
+   Si calculer, c’est cuisiner…
+Le code, ce n’est que la recette...
+                                     Code ~ Recette
+                           Ordinateur ~ Cuisine
+                 Données d’entrée ~ Ingrédients
+                Données de sortie ~ Repas
+                           Processus ~ Cuisine
+                  Unité de contrôle ~ Cuisinier
+                                     ALU ~ Ustensile
+                                      Moi ~ Client
+                 Requête de batch ~ Commande
+     Emmanuel QUÉMENER CC BY-NC-SA
+            December 11, 2023
+                                                     22/98
+        Les familles de programmes
+●
+    Comment distinguer les différents codes que j’utilise ?
+    –   « Mon code à moi dont je suis fier ! »
+    –   Le code de mon chef
+         ●
+             ou plutôt une stratification produite par des générations successives d’étudiants
+    –   Un code « métier »
+         ●
+             Modèle Ikea : distribué avec des instructions de compilation
+         ●
+             Modèle Crozatier : prêt à l’emploi
+●
+    Comme dans chaque famille, les problèmes avec l’héritage !
+    –   Dépendances avec :
+         ●
+             Des librairies génériques : BLAS, Lapack, FFTw
+         ●
+             Des librairies propriétaires : Mathworks, Intel, Nvidia, AMD, …
+         ●
+             Le matériel !
+                 Emmanuel QUÉMENER CC BY-NC-SA
+                        December 11, 2023
+                                                                    23/98
+          Performance : comment ?
+          Une question d’objectifs !
+●
+    Mettre tous les bagages et la famille dans la voiture
+●
+    Attirer l’attention des filles en sortant de boîte de nuit
+●
+    Aller d’un point A à un point B dans une ville embouteillée
+●
+    Gravir Pikes Peak aux USA
+
+
+
+
+             Emmanuel QUÉMENER CC BY-NC-SA
+                    December 11, 2023
+                                              24/98
+ Performance : comment ?
+Une question d’observables
+                 La performance en sport
+            ●
+                Pour faire un 100 mètres ?
+            ●
+                Pour boucler un marathon ?
+            ●
+                Pour lancer un poids ?
+            ●
+                Pour accomplir un heptathlon ?
+
+
+
+
+  Emmanuel QUÉMENER CC BY-NC-SA
+         December 11, 2023
+                                             25/98
+                Performance :
+        Conditionnée par les objectifs
+●
+    Vitesse : plutôt une fréquence, 1/(temps écoulé) (ou Wall Clock)
+●
+    Travail : immobilisation de ressources sur une durée
+●
+    Efficacité : exploitation optimale des ressources
+●
+    Scalabilité : capacité à passer à une échelle supérieure
+●
+    Portabilité : intégration à d’autres infrastructures informatiques
+●
+    Maintenabilité : temps humain passé à maintenir le système
+●
+    Approche générale :
+    –   Définir un critère
+    –   Rechercher les valeurs extrémales sur un ensemble de tests pertinents
+                 Emmanuel QUÉMENER CC BY-NC-SA
+                        December 11, 2023
+                                                            26/98
+                La vitesse comme critère
+                 « Speed, I’m Speed... »
+●
+    Toutes les durées, et pas seulement le temps d’exécution
+●
+    Dans l’utilisation d’un code, les 3 coûts (temporels) :
+    –   Coût d’entrée : apprendre à l’utiliser, l’intégrer à l’infrastructure, …
+    –   Coût d’exploitation : le maintenir, l’utiliser
+    –   Coût de sortie : le remplacer par un autre code équivalent, ou une technologie équivalente
+●
+    Optimisation (et son biais) : DD/DE > 1 est-il pertinent ?
+    –   DE : Durée totale de toutes mes exécutions (DuréeExécution)
+    –   DD : temps passé à tenter de minimiser la durée d’exécution (DuréeDéveloppement)
+●
+    Pour estimer ces valeurs :
+    –   Outils système, outils de métrologie dans les langages, les codes, les matériels, ...
+●
+    « Et après moi ? Le déluge ? » : quel avenir pour le code ?
+                    Emmanuel QUÉMENER CC BY-NC-SA
+                           December 11, 2023
+                                                                          27/98
+    Le travail comme critère de perf’
+●
+    Travail : « Time is money »
+    –   Ressources : CPU, RAM, GPU, stockage, réseau, ...
+    –   En fait, une Matriochka :
+         ●
+             CPU : plusieurs cœurs, CU, ALU, piles, ...
+         ●
+             RAM/SRAM : 4 niveaux
+         ●
+             Stockages : local, lent & partagé (NFS), rapide & partagé (GlusterFS, Lustre, ...)
+         ●
+             Réseaux : lent (Gigabit), rapide & basse latence (InfiniBand, Omnipath)
+●
+    Job : réservation (& immobilisation) de ressources
+    –   Classiquement, dans un système de batchs : Slots * Wall Clock
+●
+    Pour un code, quelle est l’empreinte système ?
+    –   Outils de profilage, outils système
+                Emmanuel QUÉMENER CC BY-NC-SA
+                       December 11, 2023
+                                                                 28/98
+          La scalabilité comme critère
+●
+    La scalabilité :
+     –   Dans une tâche à accomplir : Temps écoulé ? f(Temps écoulé)
+     –   Dans les ressources à mobiliser : g(Ressources Système)
+●
+    Pièges à éviter :
+     –   Les effets d’échelle (en fait, les effets de seuil sont pire)
+     –   Besoin d’un chef d’orchestre ? Du quatuor à l’orchestre symphonique…
+     –   Quel que soit le programme, les ressources machines sont limitées…
+          ●
+              Vous pensez vraiment que ça me fait rire :-/ ?
+
+    La parallélisation incontournable, mais pourquoi ?
+
+                  Emmanuel QUÉMENER CC BY-NC-SA
+                         December 11, 2023
+                                                               29/98
+Codes « métiers » & hardware
+  Exemples de scalabilité
+                                    5.00E+10           Vega 64
+                                    4.00E+10           Radeon VII
+                                                       GTX 1080 Ti
+                                    3.00E+10           RTX 2080 Ti
+                                                       Tesla P100
+                    PKDGRAV3
+                                    2.00E+10
+                                                       TR 1950X
+                                    1.00E+10
+                                    0.00E+00
+VASP                                           32     6   8   4   2
+                                                    25 204 638 107 857
+                                                            1 13 04
+                                                                      6
+
+                                                                  1
+
+
+
+
+Lammps
+
+                             CP2K
+
+
+
+   Emmanuel QUÉMENER CC BY-NC-SA
+          December 11, 2023
+                                        30/98
+Performances des ordinateurs
+ Entre Linpack & Phoronix...
+  Linpack                                       Phoronix
+
+
+  Processeurs
+                                                               Versions
+                                                               De Pilotes
+                                        Processeurs
+
+
+
+Cœurs & Tailles
+                                                                Systèmes
+                                                              d’exploitation
+
+
+
+        Emmanuel QUÉMENER CC BY-NC-SA
+               December 11, 2023
+                                                      31/98
+Performances des ordinateurs
+Linpack & le Top 500
+●
+    Quoi : les 500 super-ordinateurs les plus performants de la planète
+●
+    Quand : 2 fois par an, en juin et en novembre
+●
+    Où : tout autour du monde
+●
+    Qui (a écrit le code) : ICL de University of Tennessee
+●
+    Comment : High Performance LinPack en FP64, décomposition LU pour résoudre des systèmes
+●
+    Combien : Open Source, avec dépendances BLAS : https://www.netlib.org/benchmark/hpl/
+●
+    Pourquoi : « pour montrer ses muscles » entre pays (enjeu stratégique)...
+
+
+
+
+                    Emmanuel QUÉMENER CC BY-NC-SA
+                           December 11, 2023
+                                                                     32/98
+       Linpack & le Top 500
+Loi de Moore respectée. Comment ?
+
+
+
+                    x1000 en 20 ans & stop
+                      (ou décroissance)
+
+
+
+
+                       2 voies pour casser le « mur de chaleur »
+                            –   De multi-cœurs à many-cœurs
+                            –   Accélérateurs avec des Myri-ALUs
+      Emmanuel QUÉMENER CC BY-NC-SA
+             December 11, 2023
+                                                    33/98
+Energie dans les ordinateurs…
+ La lorgnette du physicien...
+
+
+
+   Électronique & Thermique
+
+
+
+
+   Emmanuel QUÉMENER CC BY-NC-SA
+          December 11, 2023
+                                   34/98
+Pourquoi le parallélisme (est inévitable) ?
+     Et sa contrainte est la TDP
+●
+    Grandeur et décadence de la fréquence
+    –   Entre 1981 et 1999 : de 4 MHz à 400 MHz x100 en ~20 ans
+    –   Entre 1999 et 2004 : de 400 MHz à 3 GHz x~10 in 5 years
+    –   Entre 2004 et 2009 : de 3 GHz à 2 GHz
+●
+    Thermal Design Power : enveloppe thermique de dissipation maximale
+●
+    TDP = ½ C V² f
+    –   C = Capacitance, f = fréquence, V = tension d’alimentation (fonction de f !)
+●
+    TDP pour un processeur : 150 W (sur 4 cm²)
+    –   Densité de chaleur d’une plaque à induction !
+●
+    TDP devient le facteur limitant de puissance
+        Capacitance = Finesse² . Nb Transistors . Constante de Mylq (~ 0.015)
+
+        Solution viable : augmenter les unités de traitement (PU)
+                  Emmanuel QUÉMENER CC BY-NC-SA
+                         December 11, 2023
+                                                                         35/98
+        Energie en calcul scientifique…
+         Le point du vue du physicien
+
+           Work
+                                                                        Mécanique
+Force
+
+
+
+
+                                                                        La puissance est définie
+                                        Work                             Comme le produit de :
+                             Power
+
+
+        Distance                                                    ●
+                                                                      Fréquence
+                                                                    ●
+                                                                      Nombre d’unités
+                                     Time                           ●
+                                                                      Puissance unitaire
+                                                                             x2          t2
+                                                     Power
+            Power
+
+
+
+
+                                                                        W =∫ F dx=∫ P dt
+                    Time                                     Time            x1          t1
+
+
+           Caractérisation des « moteurs » de traitement...
+                     Emmanuel QUÉMENER CC BY-NC-SA
+                            December 11, 2023
+                                                                        36/98
+Il y a longtemps, entre 1985... et 2005,
+       la variable est la fréquence !
+
+ Puissance vs RPM
+
+
+
+
+        Emmanuel QUÉMENER CC BY-NC-SA
+               December 11, 2023
+                                        37/98
+ Travail & Ressources Informatiques
+Un moteur comme source de puissance
+                                    40.00
+                                              Pthreads
+
+                                    35.00     OpenMP          Scalabilité
+Chevaux Vapeur vs RPM 30.00                   MPI
+                                              OpenCL Intel
+                                                                  vs
+                                              OpenCL AMD Régime de Parallélisme
+                                    25.00     Theory
+
+                                    20.00
+
+
+                                    15.00
+
+
+                                    10.00
+
+
+                                     5.00
+
+
+                                     0.00
+                                             1
+                                             5
+                                             9
+                                            13
+                                            17
+                                            21
+                                            25
+                                            29
+                                            33
+                                            37
+                                            41
+                                            45
+                                            49
+                                            53
+                                            57
+                                            61
+                                            65
+                                            69
+                                            73
+                                            77
+   ●
+       Quel comportement de ces « moteurs » à la charge ?
+   ●
+       Le « moteur », un « système » englobant matériel, OS et logiciels
+              Emmanuel QUÉMENER CC BY-NC-SA
+                     December 11, 2023
+                                                          38/98
+        Linpack & le Top 500
+Loi de Moore respectée. Comment ?
+                                         Accélérateurs
+                                          depuis 2005
+                                        Pas seulement
+    Multicœurs                          (GP)GPU & Phi
+     dans les
+     sockets
+
+     Transition
+     de phase
+     en 2007
+
+
+
+
+        Emmanuel QUÉMENER CC BY-NC-SA
+               December 11, 2023
+                                          39/98
+   Evolution des machines…
+De 2004 à 2013, sur les laptops !
+
+
+
+
+     Emmanuel QUÉMENER CC BY-NC-SA
+            December 11, 2023
+                                     40/98
+Evolution de 2007 à 2016
+Sur les stations de travail
+
+
+
+
+ Emmanuel QUÉMENER CC BY-NC-SA
+        December 11, 2023
+                                 41/98
+Evolution de 2007 à 2016
+   sur des serveurs...
+
+
+
+
+ Emmanuel QUÉMENER CC BY-NC-SA
+        December 11, 2023
+                                 42/98
+Et même pire… Dans 2U (unités)
+    4 serveurs très modernes
+
+
+
+
+     Emmanuel QUÉMENER CC BY-NC-SA
+            December 11, 2023
+                                     43/98
+Et au Centre Blaise Pascal
+Pour les deux extrêmes...
+
+
+
+
+   Emmanuel Quemener    44/98
+    December 11, 2023
+        Linpack & le Top 500
+     Comment retrouver Rpeak :-/ ?
+                                                         ●
+                                                                 Cores : unités de calcul
+                                                         ●
+                                                                 Rmax : résultat du HPL
+                                                         ●
+                                                                 Rpeak : perf’ théorique
+                                                         ●
+                                                                 Ratio max/peak ~ 73 %
+●
+    La chinoise, troisième...                    ●
+                                                     L’Américaine, première…
+                                                     –   Cores = 9216 Power9 + 27648 V100
+    –   Cores = 40960 SW26010                                ●
+                                                                 22 cores/Power9, 80 StreamMultiprocessors/V100
+         ●
+             260 cores/SW26010                       –   Rpeak ~ RpeakCPU+RpeakGPU
+                                                                 RpeakCPU = 9216*22*3.07e9*64 ~ 20 %
+    –   Rpeak ~ Cores*1.45e9*8
+                                                             ●
+
+
+
+                                                             ●   RpeakGPU = 27648*80*1.13e9*64 ~ 80 %
+    –   Donc : 8 instructions / cycle                –   Donc 64 instructions / cycle on CPU&GPU
+                 Emmanuel QUÉMENER CC BY-NC-SA
+                        December 11, 2023
+                                                                          45/98
+Autant d’« Instructions par Cycle » !
+    Comment c’est possible ?
+●
+    Vieille & profonde évolution dans le CPU :
+    –   RISC remplace le CISC :
+         ●
+             RISC : 1 instruction par cycle
+    –   Le « Pipelining » devient la «règle» :
+         ●
+             Les 5 opérations « semblent » exécutées en 1 cycle
+    –   L’unité en virgule flottante (Floating Point Unit) est intégrée dans le CPU
+         ●
+             C’est une ALU spécifique
+    –   Multiplication d’ALU spécialisées dans le CPU
+         ●
+             De 5 dans AMD K6 à 10 par cœur dans une architecture Zen
+    –   Chaque ALU intègre la vectorisation :
+         ●
+             A l’origine des opérations 3D (MMX, 3DNow, SSE, SSE2, …, AVX512)
+    –   Le Socket intègre plusieurs cœurs (UC+ALUs+Cache mémoire)
+                    Emmanuel QUÉMENER CC BY-NC-SA
+                           December 11, 2023
+                                                                        46/98
+      Linpack & le Top 500
+Puissance des machines hybrides
+                                                        Avec (GP)GPU
+
+                                                Avec accélérateur Xeon Phi
+                                     ●
+                                         Novembre 2018 :
+                                         –   7/10 sont Hybrides dans le Top 10
+                                         –   25 % dans le Top 500
+                                     ●
+                                         Avant 2012 :
+                                         –   Hybride : MPI+OpenMP
+                                     ●
+                                         Après 2012 :
+                                         –   OpenMP+Cuda
+                                         –   OpenMP+MPI
+                                         –   OpenMP+Cuda+MPI
+                                         –   OpenCL+MPI
+     Emmanuel QUÉMENER CC BY-NC-SA
+            December 11, 2023
+                                                         47/98
+ Pourquoi je n’utilise pas LinPack ?
+Testez vous-même… Escroquerie...
+ ●
+     Trop de paramètres « libres » (jamais publiés)
+ ●
+     Trop « d’escroqueries » des constructeurs
+     –   HPL & HPCC : ~ 15 % d’efficacité
+     –   Linpack Intel MKL : de 57 % à 92 % d’efficacité
+     –   CUDA de Nvidia : ~ 20 % d’efficacité (et un cauchemar à compiler)
+
+
+
+
+     –   Comment ils atteignent 75 % d’efficacité sur des millions de cœurs ?
+ ●
+     Trop de « bits » : seulement 64 bits, trop pour des applications
+ ●
+     Donc chercher ailleurs, plus simple, plus universel
+
+                 Emmanuel QUÉMENER CC BY-NC-SA
+                        December 11, 2023
+                                                                       48/98
+Pourquoi le parallélisme : chemin…
+    Où sommes-nous ? Où allons-nous ?
+●
+    Où sommes-nous ? Nous utilisons des codes quotidiennement
+●
+    Où allons-nous ? Nous voulons plus de « performance »
+●
+    Comment y aller ? Le parallélisme est une voie mais pourquoi ?
+●
+    Avant de « tomber dans le trou du lapin blanc » du parallélisme :
+    –   Quelles sont les pratiques d’utilisations ?
+    –   Comment définir la performance d’un code ?
+    –   Quel critère de performance choisir ?
+    –   Comment atteindre la performance souhaitée ?
+    –   Comment vérifier que la performance est bien atteinte ?
+
+                 Emmanuel QUÉMENER CC BY-NC-SA
+                        December 11, 2023
+                                                             49/98
+    Qu’est-ce que le parallélisme ?
+       Retournons à la source
+●
+    Etymologie (etymonline.com) : à côté d’un autre
+    –   De para- « à côté »
+    –   De allelois « chacun », de allos « autre »
+●
+    Parallélisme : tâches à accomplir, ressources limitées
+    –   Exécution de différentes tâches en parallèles
+    –   Exécution d’une tâche sur plusieurs ressources
+         ●
+             Communications éparses : gros grain
+         ●
+             Communicatons fréquentes : grain fin
+●
+    Paradoxe du parallélisme, des méridiens !
+               Emmanuel QUÉMENER CC BY-NC-SA
+                      December 11, 2023
+                                                        50/98
+        Combien pour le Parallélisme ?
+        Temps, Silicium, Complexité...
+●
+    The 3 coûts temporels :
+    –   Coût d’entrée, coût d’exploitation, coût de sortie
+    –   Un temps d’exécution à comparer avec le temps d’adaptation
+●
+    Silicium : les technologies ont des coûts très différents
+    –   SMP (Shared Memory Processors) : chères et limitées
+    –   MPP (Massively Parallel Processing) : exigeantes en réseaux très spécifiques
+    –   Les clusters sont facilement extensibles
+●
+    Complexité : corollaire d’un large nombre de portes logiques
+    –   Un « cœur » GPU (QPU) est plus simple qu’un cœur CPU
+    –   Un « cœur » GPU (QPU) est jusqu’à 50 fois plus lent qu’un cœur CPU
+                  Emmanuel QUÉMENER CC BY-NC-SA
+                         December 11, 2023
+                                                             51/98
+Comment penser « parallélisme »
+« Le grain, le problème, c’est le grain... »
+●
+    1 Entrée / 1 Processus ? Optimisez le processus !
+●
+    1 Entrée / Y Processus ? Optimisez chaque processus !
+●
+    X Entrées / 1 Processus ? Optimisez la distribution !
+●
+    X Entrées / Y Processus ? Optimisez les deux !
+Le Grain est défini par le taux de communication !
+●
+    Grain fin : communications fréquentes (~ >> 1/seconde)
+●
+    Gros grain : communications éparses (~ < 1/seconde)
+●
+    « Embarrassing parallelism » : tâches indépendantes
+           Emmanuel QUÉMENER CC BY-NC-SA
+                  December 11, 2023
+                                             52/98
+Comment penser le ParallelisMe
+La Taxonomie de Flynn
+●
+    SISD : Simple Instruction Simple Data
+●
+    SIMD : Simple Instruction Multiple Data
+    –   Vectorisation
+●
+    MISD : Multiple Instructions Simple Data
+    –   Pipelining
+●
+    MIMD : Multiple Instructions Multiple Data
+                        Jetons un petit regard
+           « Derrière la porte de la cuisine » (In Silicon) ?
+
+                Emmanuel QUÉMENER CC BY-NC-SA
+                       December 11, 2023
+                                                                53/98
+Comment exploiter le parallélisme ?
+ Stratégies d’exécution parallèle...
+●
+    Pipelining à grain fin, sur le silicium :
+    –   5 instructions simples à la fois
+         ●
+             Récupération de l’instruction
+         ●
+             Décodage de l’instruction
+         ●
+             Exécution
+         ●
+             (Accès si nécessaire à la mémoire)
+         ●
+             Ecriture du résultat
+    –   2 spécifications du RISC : 1 instruction/cycle, usage de registres
+                                                                Séparation Distribution
+●
+    2 approches différentes :
+    –   Vectorisation : Assemblage/
+                        Assemblage Processus/
+                                    Processus Séparation
+    –   Distribution : Distribution/
+                       Distribution Processus/
+                                     Processus Collecte                        Processus
+
+●
+    En fait, médianisation ;-)
+                                                              Assemblage       Collecte
+                         Emmanuel QUÉMENER CC BY-NC-SA
+                                December 11, 2023
+                                                                       54/98
+              Au delà de la cuisine
+              Le déménagement.
+●
+    Objectif : déménager des 420 cartons de A à B
+●
+    Moyens :
+    –   6 personnes pour chacune porter 1 carton
+    –   2 chariots pouvant porter 6 cartons
+    –   Un ascenseur de chaque côté pouvant accueillir 12 cartons
+    –   Une camionnette pouvant contenir 100 cartons
+●
+    Comment organiser le déménagement ?
+    –   Quelles sont les unités parallèles, quelle est leur nature ?
+    –   Où retrouve-t-on les éléments de Flynn ?
+            Emmanuel QUÉMENER CC BY-NC-SA
+                   December 11, 2023
+                                                     55/98
+   Le point de vue des
+   unités de traitement
+                       Cluster ou grappe
+
+
+                                      Nœud
+
+
+                                             Socket
+
+                                                      Cœur
+
+
+                                                             ALU
+
+
+
+
+Emmanuel QUÉMENER CC BY-NC-SA
+       December 11, 2023
+                                             56/98
+Mémoires hiérarchiques !
+   Pas de mémoire partagée... Donc communications !
+   Par passages de messages, des fichiers partagés...
+
+                                 DRAM
+
+                                              L3
+
+                                                    L2/L1
+
+                                                             Registres
+
+
+
+     Cluster
+                       Nœud         Socket      Cœur
+      20 TB                                                ALU
+                       64 GB        20 MB      256 KB
+     7 GB/s                        120 GB/s               512 bit
+                      20 GB/s                 200 GB/s
+                                                         333 GB/s
+
+
+ Emmanuel QUÉMENER CC BY-NC-SA
+        December 11, 2023
+                                               57/98
+               Si calculer était cuisiner...
+                 Et pour la mémoire...
+            Code ~ Recette
+       Ordinateur ~ Cuisine
+                                                                    RAM
+Données d’entrée ~ Ingrédients
+                                                                             RAM
+Données de sortie ~ Plat cuisiné
+       Processus ~ Préparation
+                                                  L2                                   L1
+ Unité de contrôle ~ Cuisinier                                                L2
+                                                                                   Registres
+             ALU ~ Ustensile
+                                             L1         Registres
+                                                                             L3
+   Dynamic RAM ~ Placards, tables, ...
+        L3 Cache ~ Tout plan de travail            L3
+        L2 Cache ~ Plan de travail à un pas
+        L1 Cache ~ Plan de travail, récipient
+        Registres ~ Mains de la cuisinière
+
+                   Emmanuel QUÉMENER CC BY-NC-SA
+                          December 11, 2023
+                                                                     58/98
+   Comment programmer en // ?
+    Modèles de programmation
+                  Cluster          Node CPU     Node GPU   Node Nvidia    Accélerateur
+  MPI              Oui               Oui          Non         Non             Oui*
+ PVM               Oui               Oui          Non         Non             Oui*
+OpenMP             Non               Oui          Non         Non             Oui*
+Pthreads           Non               Oui          Non         Non             Oui*
+OpenCL             Non               Oui          Oui         Oui              Oui
+ CUDA              Non               Non          Non         Oui             Non
+  TBB              Non               Oui          Non         Non             Oui*
+OpenACC            Non               Oui          Non          Oui             Oui
+Kokkos             Non               Oui          Non          Oui             Oui
+ SyCL              Non               Oui          Oui          Oui             Oui
+
+Librairies haut niveau de programmation parallèle
+                         Cluster     Nœud CPU   Nœud GPU   Nœud Nvidia   Accélerateur
+           BLAS          BLACS       OpenBLAS     clBLAS    CuBLAS       OpenBLAS
+                          MKL          MKL                                 MKL
+        LAPACK        Scalapack         Atlas    clMAGMA    MAGMA        MagmaMIC
+                        MKL             MKL
+           FFT           FFTw3         FFTw3       clFFT     CuFFT         FFTw3
+
+           Emmanuel QUÉMENER CC BY-NC-SA
+                      12/11/23
+                                                            59/98
+        Votre « permis de conduire »
+          en calcul scientifique ;-) ?
+●
+    Dans un livre français de mathématiques appliquées
+    –   « Les physiciens ont un usage des mathématiques que les
+        mathématiciens assimilent facilement à de l’inconscience ! »
+●
+    Comme un BOFH de ressources informatiques
+    –   « Les scientifiques ont un usage typique des ressources
+        informatiques que j’assimile aisément à de l’inconsistance ! »
+●
+    Est-ce que vous « conduisez » vos usages ?
+
+
+                                      htop                  dstat
+
+            Emmanuel QUÉMENER CC BY-NC-SA
+                   December 11, 2023
+                                                    60/98
+Loi d’Amdahl ? Vérité ou mensonge
+Prêt à prendre la « pilule rouge » ?
+1000
+
+
+
+
+ 100
+                                          16
+                                          26
+                                          36
+                                          46
+                                          56
+                                          66
+                                          76
+                                          86
+                                          96
+                                         106
+                                         116
+                                         126
+                                         136
+                                         146
+                                         156
+                                         166
+                                         176
+                                         186
+
+
+
+
+                                               PiMC : parallel execution with C/MPI, 10e12 iterations
+
+                                       300
+                                                                                                            Mesures
+                                                                                                        Loi d'Amdahl
+
+
+
+                                       250
+
+
+
+
+                                       200
+  Speed Up factor (relative to 8 NP)
+
+
+
+
+                                       150
+
+
+
+
+                                       100
+
+
+
+
+                                        50
+
+
+
+
+                                         0
+                                             100                   200                     300           400           500
+
+                                                                                 NP
+
+
+
+                                                                                             Emmanuel QUÉMENER CC BY-        61/98
+                                                                                             NC-SA December 11, 2023
+    L’observable en informatique...
+●
+    Observable = fonction(code,données,backoffice)
+    –   Qu'est-ce que je maîtrise ?
+●
+    Le code ?
+    –   Tout le code ?
+●
+    Les données ?
+    –   L'accès aux données
+●
+    Le back-office
+    –   Réseau ? Systèmes ?
+●
+    Une constante : observer perturbe...
+    –   Out-of-code : time et al, mais aussi le reste
+    –   In-Code : commande système avec timer
+
+                Emmanuel QUÉMENER CC BY-NC-SA
+                       December 11, 2023
+                                                        62/98
+    A l’origine, une notion essentielle
+     en sciences : la « référence »
+●
+    Histoire personnelle : retour au HPC fin 2009
+●
+    Déferlante des (GP)GPU par Nvidia : GTX295 ou T1060
+●
+    Code de référence : LinPack du Top 500
+    –   Exercice personnel : portage du hpl de BLAS à CuBLAS
+    –   Finalement, plutôt inefficace face aux xBLAS : mais pourquoi ?
+●
+    Besoin de revenir aux « fondamentaux »
+    –   Écrire ses propres programmes exploitant les BLAS
+         ●
+             Nombreuses implémentations : FBLAS, CBLAS, CuBLAS, clBLAS, gslBLAS…
+    –   Aborder les problèmes avec deux approches : intégrateur & développeur
+                     Emmanuel Quemener
+                         12/11/23
+                                                         63/98
+    Le souci de l’universalité…
+L’émergence de « codes matrices »
+●
+    Pyphi 2011 : modèle d’Ising, transition de phase
+    –   comparaison C, MPI, OpenCL, CUDA…
+●
+    Fin 2012 : code Pi Monte Carlo
+    –   Gros grain, simple, parallélisable de manière quasi-continue…
+    –   Charge sur le RNG, nature des variables (INT, FP, 32&64)
+    –   Implémentations sur toutes les approches parallélisées
+●
+    Fin 2014 : code Nbody
+    –   Grain fin, physique, parallélisable de manière aussi continue
+    –   Charge sur les calculs, nature des variables (FP32&FP64)
+    Mais aucune exploitation massive de la mémoire…
+                      Emmanuel Quemener
+                          12/11/23
+                                                            64/98
+ 40 ans entre simulation et mesure
+         De 2019 à 1979...
+1979 : JP Luminet A&A         2014 : Film Interstellar     2019 : EHT, Messier 87
+
+
+
+
+ 1994 : Code Fortran                 1997 : Code C        2019 : OpenCL/CUDA
+
+
+
+
+                 Emmanuel Quemener
+                     12/11/23
+                                                         65/98
+       La physique de base
+Tout dans un article de JP Luminet !
+●
+    Relativité générale d’Einstein
+●
+    Une métrique de Schwarzschild
+●
+    Réduction en équation polaire
+●
+    Dérivation de l’équation polaire
+●
+    Système du second ordre
+●
+    Modèle d’émission de disque
+    –   Raie monochromatique : cas d’école
+    –   Corps noir : modèle plus réaliste
+                    Emmanuel Quemener
+                        12/11/23
+                                             66/98
+    De l’article au rapport
+●
+    Métrique de Schwarzschild :
+
+●
+    Equation polaire :
+
+●
+    Changement de coordonnées : u=1/r
+
+●
+    Dérivation de l’équation polaire :
+
+                                              du        dv   m
+                                         v=                =3 u ²−u
+●
+    Système d’équations à résoudre :          dϕ   et   dϕ   b
+                  Emmanuel Quemener
+●
+                      12/11/23
+                                                    67/98
+    Le « lancer de rayons » :
+Remonte le temps, forme une image
+
+
+
+
+  Source Wikipedia : Mental Ray CC BY-SA 3.0, Henrik CC BY-SA 4.0
+
+              Emmanuel Quemener
+                  12/11/23
+                                              68/98
+  Echarpe de plasma autour du Trou Noir
+Pas « sans » mais « avec » dessus-dessous...
+                             Dessus
+                             d’écharpe
+
+
+
+
+                                Dessous
+                              d’écharpe
+
+         Emmanuel Quemener
+             12/11/23
+                                    69/98
+Calculer les trajectoires inverses
+   Entre Newton et Einstein
+
+
+
+
+    Newton                 Einstein
+
+       Emmanuel Quemener
+           12/11/23
+                            70/98
+Et ça donne quoi pour tous les
+    paramètres d’impacts ?
+
+
+
+
+     Emmanuel Quemener
+         12/11/23
+                         71/98
+Quelques cas particuliers :
+ le dessus, le dessous...
+
+
+
+
+    Emmanuel Quemener
+        12/11/23
+                        72/98
+   Quelques cas particuliers :
+le redessus, dessus et dessous
+
+
+
+
+      Emmanuel Quemener
+          12/11/23
+                          73/98
+  A chaque impact, deux physiques
+     Monochrome & Corps noir
+« Puissance 4 » sur z             Spectre de planck
+
+
+
+
+      Mono                                BB
+
+
+
+              Emmanuel Quemener
+                  12/11/23
+                                  74/98
+La méthode : « lancer des rayons »
+   de l’oeil au disque de plasma
+●
+    Pour chaque pixel de l’image
+    –   Calculer la trajectoire (résoudre le système d’équations)
+    –   Regarder si le photon intercepte le disque
+         ●
+             Si la distance du photon inférieure au rayon de Schwarzschield
+               – Dommage… (en même temps, c’est le principe du « trou noir »)
+         ●
+             Si le photon traverse le plan du disque entre ses rayons intérieur & extérieur
+               – Estimation de l’effet Doppler & Einstein
+               – Estimation du flux par deux méthodes :
+                    ●
+                      Émission monochromatique : simple mais instructive
+                    ●
+                      Émission de « corps noir » : plus réaliste mais spectre de Planck
+●
+    Méthode systématique mais très coûteuse :
+    –   Aucun exploitation de la symétrie du problème physique
+                        Emmanuel Quemener
+                            12/11/23
+                                                                     75/98
+      Méthode « économique » :
+    exploitation symétrie cylindrique
+●
+    Pour chaque « paramètre d’impact » (distance au centre)
+    –   Calcul de la trajectoire du photon en fonction de l’angle
+    –   Pour chacun des pixels de l’image avec ce paramètre d’impact :
+         ●
+             Estimation de l’indice d’interception correspondant à l’angle du disque
+         ●
+             Test si la distance au centre pour cet indice est entre les rayons interne et externe
+               – Estimation de l’effet Doppler & Einstein
+               – Estimation du flux par deux méthodes :
+                    ●
+                      Émission monochromatique : simple mais instructive
+                    ●
+                      Émission de « corps noir » : plus réaliste mais spectre de Planck
+●
+    Beaucoup plus efficace et temps de calcul ~ #pixels
+    –   Exploitation du PixHertz (nombre de pixels sur temps écoulé)...
+                        Emmanuel Quemener
+                            12/11/23
+                                                                  76/98
+      Du paramètre d’impact « b »
+         Au cercle sur l’image
+
+
+  8       16                             b     128   256
+
+
+ 32       64                                   512   1024
+
+
+Balayage des pixels : découpage du cercle en 8b secteurs
+         Emmanuel QUÉMENER CC BY-NC-SA
+                December 11, 2023
+                                             77/98
+Le code, la boucle principale :
+paramètres d’impact & angles
+   for (n=1;n<=nmx;n++)                                           imx=(int)(8*d);
+
+    {                                                             for (i=0;i<=imx;i++)
+                                                                   {
+        h=4.*PI/(MYFLOAT)TRACKPOINTS;
+                                                                       phi=2.*PI/(MYFLOAT)imx*(MYFLOAT)i;
+        d=stp*n;                                                       phd=atanp(cos(phi)*sin(tho),cos(tho));
+        db=bmx/(MYFLOAT)nmx;                                           phd=fmod(phd,PI);
+        b=db*(MYFLOAT)n;                                               ii=0;
+
+        up=0.;                                                         tst=0;
+                                                                       do
+        vp=1.;
+                                                                        {
+        pp=0.;                                                              php=phd+(MYFLOAT)ii*PI;
+        nh=1;                                                               nr=php/h;
+        rungekutta(&ps,&us,&vs,pp,up,vp,h,m,b);                             ni=(int)nr;
+
+        rp[(int)nh]=fabs(b/us);                                             if ((MYFLOAT)ni<nh)
+                                                                             {
+        do
+                                                                                 r=(rp[ni+1]-rp[ni])*(nr-ni*1.)+rp[ni];
+         {                                                                   }
+             nh++;                                                          else
+             pp=ps;                                                          {
+
+             up=us;                                                              r=rp[ni];
+                                                                             }
+             vp=vs;
+                                                                            if ((r<=re)&&(r>=ri))
+             rungekutta(&ps,&us,&vs,pp,up,vp,h,m,b);                         {
+             rp[(int)nh]=b/us;                                                   tst=1;
+         } while ((rp[(int)nh]>=rs)&&(rp[(int)nh]<=rp[1]));                      impact(d,phi,dim,r,b,tho,m,zp,fp,q,db,h,bss,raie);
+
+        for (i=nh+1;i<TRACKPOINTS;i++)                                       }
+                                                                            ii++;
+         {
+                                                                        } while ((ii<=2)&&(tst==0));
+             rp[i]=0.;                                             }
+         }                                                    }
+                         Emmanuel Quemener
+                             12/11/23
+                                                                                          78/98
+   Le banc d’essai : échantillon
+30 ans d’évolutions technologiques
+●
+    La fréquence : de 40 MHz à 3.6 GHz
+●
+    Ces 30 dernières années : 5 (r)évolutions
+    –   Intégration systématique du FPU dans les processeurs : #1
+         ●
+             Avant : 80386SX à 40 MHz (1989) et 80486SX à 25 MHz (1991)
+         ●
+             Après : Overdrive DX4 à 75 MHz (1994) et Amd5x86 (1995)
+    –   Exploitation interne de RISC86 et intégration unité vectorielle : #2 et #3
+         ●
+             AMD K6-2 à 233 MHz avec unité 3DNow
+    –   Multiplication des coeurs (d’abord virtuel) : #4
+         ●
+             Premiers : Pentium 4 Northwood à 3 GHz avec HyperThreading et AthlonX2 à 2.6 GHz
+         ●
+             Systèmes avec HarperTown, Nehalem, Broadwell, Skylake, Threadripper : 8 à 28 coeurs
+    –   Détournement de l’usage des GPU : #5
+         ●
+             De la Tesla C0160 à la Tesla V100
+                         Emmanuel Quemener
+                             12/11/23
+                                                                       79/98
+          Banc de test sur les 16 CPUs
+●
+    Les processeurs et leurs distributions :
+    –   80386SX, 80486SX, Overdrive DX4, Amd5x86 : Debian Buzz & Hamm
+    –   K7, Northwood, AthlonX2 : Debian Stretch
+    –   E5440x2, X5550x2, E5-2637v4x2, E5-2680v4, Gold5122, Silver4144, W-2145 : Debian Stretch
+    –   Threadripper 1950X : Ubuntu 18.10
+●
+    Images de 64x64 à 16384x16384 pixels : 2⁶ à 2
+    –   Sauf pour les très très vieux CPU : limitation à 256x256
+●
+    Méthodes : 2 à explorer avec « charges » différentes
+    –   Charge calculatoire faible : « Monochromatique » (ak Mono)
+    –   Charge calculatoire élevée : « Corps Noir » (aka BB)
+●
+    Statistiques : 10 lancements successifs
+    –   Exploitation de la médiane pour le « Elapsed Time »
+                          Emmanuel Quemener
+                              12/11/23
+                                                                     80/98
+Distribution de CPU pertinente ?
+  Transistors & Fréquences...
+                            Nombre de Transistors
+
+
+
+
+                                      Fréquence de processeur
+
+
+
+
+  Doublement des transistors tous les 2 ans...
+        Emmanuel Quemener
+            12/11/23
+                                                    81/98
+         L’ère préFPU…
+    Le 80386SX et le 80486SX
+
+
+
+
+La fréquence ne fait pas tout… Sous le PixHertz en BB
+           Emmanuel Quemener
+               12/11/23
+                                    82/98
+Le FPU là, les fréquences grimpent
+   #1 : Le 80486DX4 à 75 MHz
+                                                1994
+
+
+
+
+                                                1994
+
+
+
+
+ x240 en performance : « des minutes en secondes »
+           Emmanuel Quemener
+               12/11/23
+                                   83/98
+   Le RISC & la vectorisation
+#2 & #3 : le AMD K6-2 à 233 MHz
+                                                  OS 2011
+
+                                                  OS 1998
+
+
+
+
+   L’optimisation vient surtout 15 ans plus tard...
+          Emmanuel Quemener
+              12/11/23
+                                      84/98
+Le multicœurs : logique & physique
+#4 : le Northwood Intel, l’Athlon64x2
+                                                     2005
+
+
+
+
+                                                     2004
+
+
+
+
+            Un facteur 10 à 15 entre en 8 ans
+  Programme séquentiel, pas d’exploitation des cœurs...
+            Emmanuel Quemener
+                12/11/23
+                                       85/98
+4 générations de bi-quad-cores
+       de 2009 à 2019
+
+
+
+                                           4 systèmes
+                                bi-sockets quad-cœurs
+
+
+
+
+  Un facteur 3 en 15 ans : peut mieux faire !
+       Emmanuel Quemener
+           12/11/23
+                                  86/98
+16 processeurs de 1989 à 2019 :
+     « and the winner is »...
+                                       2018
+
+
+
+
+    Le AMD Threadripper 1950X à 3.6 GHz
+       Emmanuel Quemener
+           12/11/23
+                               87/98
+              Exécution du code séquentiel
+            On gagne (quand même) en 30 ans
+           ThreadRipper1950X                                                                                  ThreadRipper1950X
+                 A64X2-5200+                                                                                       A64X2-5200+
+                       K7-800                                                                                           K7-800
+                     K6-2-233                                                                                          K6-2-233
+
+                  Am5x86-133                                                                                        Am5x86-133
+
+
+                      W-2145                                                                                            W-2145
+                                                                                                                    Gold5122x2
+Systems of CPU
+
+
+
+
+                                                                                             Systems of CPU
+                   Gold5122x2
+                                                                                                                   Silver4144x2
+                  Silver4144x2
+                                                                                                                   E5-2680v4x2
+                  E5-2680v4x2
+                                                                                                                   E5-2637v4x2
+                  E5-2637v4x2
+                                                                                                                       X5550x2
+                     X5550x2
+                                                                                                                       E5440x2
+                     E5440x2
+                                                                                                                   NorthwoodP4
+                  NorthwoodP4
+                                                                                                                  I80486DX4-75
+                 I80486DX4-75
+                                                                                                                   I80486SX-25
+                  I80486SX-25                                            Mono_Serial                                                          Mono_Serial
+                                                                                                                   I80386SX-40
+                  I80386SX-40                                            BB_Serial                                                            BB_Serial
+
+
+
+
+                                                                                                                                  .
+
+                                                                                                                                  .
+
+                                                                                                                                  .
+
+                                                                                                                                  .
+
+                                                                                                                                  .
+
+                                                                                                                                  .
+
+                                                                                                                                  .
+
+                                                                                                                                  .
+
+                                                                                                                                  .
+                                                                                                                               -1
+
+                                                                                                                              +0
+
+                                                                                                                              +1
+
+                                                                                                                              +2
+
+                                                                                                                              +3
+
+                                                                                                                              +4
+
+                                                                                                                              +5
+
+                                                                                                                              +6
+
+                                                                                                                              +7
+                             0E+0.   1E+6.   2E+6.   3E+6.   4E+6.   5E+6.   6E+6.   7E+6.
+
+
+
+
+                                                                                                                            1E
+
+                                                                                                                            1E
+
+                                                                                                                            1E
+
+                                                                                                                            1E
+
+                                                                                                                            1E
+
+                                                                                                                            1E
+
+                                                                                                                            1E
+
+                                                                                                                            1E
+
+                                                                                                                            1E
+                                             PixHertz                                                                              PixHertz
+
+
+
+                 Gain Best/Worse : 3 millions en BB et 700000 en Mono...
+                                                 Emmanuel Quemener
+                                                     12/11/23
+                                                                                                                                  88/98
+     Influence de la fréquence :
+de 1989 à 2019 : de 40 à 3700 MHz
+
+
+
+
+     Sur 15 ans, entre un facteur 3 et un facteur 15…
+    Il va falloir trouver autre chose pour accélerer !
+            Emmanuel Quemener
+                12/11/23
+                                        89/98
+       Parallélisation du code
+  Passage en OpenMP & étrangetés
+●
+        Parallélisation « naturelle » : paramètre d’impact
+         –    Modification mineure du code (déplacement de déclaration de variables)
+         –    Crainte : charge calculatoire non équivalente pour les différents tâches
+         –    Exploration pour différents OMP_NUM_THREADS : de 1x à 128x
+●
+        Pour le meilleur : le ThreadRipper 1950x, un x17-x18
+4E+7.                                                 2E+8.
+                BB OMPx1                                              Mono OMPx1
+                BB OMPx2                                              Mono OMPx2
+                BB OMPx4                                              Mono OMPx4
+3E+7.
+                BB OMPx8                                              Mono OMPx8
+                BB OMPx16                                             Mono OMPx16
+                BB OMPx32                                             Mono OMPx32
+2E+7.                                                 1E+8.           Mono OMPx64
+                BB OMPx64
+                BB OMPx128                                            Mono OMPx128
+                BB Serial                                             Mono Serial
+1E+7.
+
+
+0E+0.                                                 0E+0.
+        64   128 256 512 1024 2048 4096 8192 16384            64   128 256 512 1024 2048 4096 819216384
+
+                                  Emmanuel Quemener
+                                      12/11/23
+                                                                                 90/98
+                  Parallélisation OpenMP
+              On gagne plus que prévu en BB !
+        ThreadRipper1950X                                                               ThreadRipper1950X
+              A64X2-5200+                                                                     A64X2-5200+
+
+                    Séquentiel
+                    K7-800                                  OpenMP                                  K7-800
+                  K6-2-233                                                                        K6-2-233
+               Am5x86-133                                                                      Am5x86-133
+
+
+                   W-2145                                                                          W-2145
+               Gold5122x2                                                                      Gold5122x2
+CPU Systems
+
+
+
+
+                                                                                CPU Systems
+               Silver4144x2                                                                    Silver4144x2
+              E5-2680v4x2                                                                     E5-2680v4x2
+              E5-2637v4x2                                                                     E5-2637v4x2
+                  X5550x2                                                                         X5550x2
+                  E5440x2                                                                         E5440x2
+              NorthwoodP4                                                                     NorthwoodP4
+              I80486DX4-75                                                                    I80486DX4-75
+               I80486SX-25                                          BB_OMP                     I80486SX-25                                      Mono_OMP
+               I80386SX-40                                          BB_Serial                  I80386SX-40                                      Mono_Serial
+                         0.0E+0.   1.0E+7.        2.0E+7.     3.0E+7.      4.0E+7.                      0.0E+0.    4.0E+7.        8.0E+7.   1.2E+8.     1.6E+8.
+                                       PixHertz                                                                        PixHertz
+
+
+
+                          x68 millions en BB et x14 millions en Mono
+                                        Emmanuel Quemener
+                                            12/11/23
+                                                                                                                  91/98
+                   Peut-on mieux faire ?
+                    Testons OpenCL !
+●
+    OpenCL, méconnu mais tellement polyvalent : 13 implémentations
+    –   GPU : Nvidia, AMD via ROCm, AMD via Mesa, Intel via Beignet et Intel
+    –   CPU : AMD, PortableCL, Intel
+    –   MIC : Intel pour Xeon Phi
+    –   FPGA : Altera/Intel, Xilinx
+    –   (DSP : Texas Instruments)
+    –   (GPU ARM)
+●
+    OpenCL : sa programmation...
+    –   Principe : des « noyaux » de calcul à distribuer à outrance !
+    –   Programmation « hardcore » en C, plus facile en C++
+    –   Programmation via API Python : « la voie » !
+                        Emmanuel Quemener
+●
+                            12/11/23
+                                                                92/98
+OpenCL : distribuer notre calcul.
+Quel régime de parallélisme PR ?
+●
+    Approche initiale héritée du code C : EachCircle
+    –   Parallélisé suivant le paramètre d’impact : PR=Taille/2
+●
+    Approche brutale : EachPixel
+    –   Parallélisé suivant le nombre de pixels : PR=Taille*Taille
+●
+    Approche hybride : TrajectoPixel
+    –   D’abord parallélisé suivant les paramètres d’impact : PR=Taille/2
+    –   Ensuite parallélisé suivant chaque pixel : PR=Taille*Taille
+●
+    Approche hybride sauvage : TrajectoCircle
+    –   D’abord parallélisé suivant les paramètres d’impact : PR=Taille/2
+    –   Ensuite parallélisé suivant chaque pixel : PR=4*Taille
+●
+    Donc 4 méthodes à explorer pour tous nos CPU !
+                     Emmanuel Quemener
+                         12/11/23
+                                                                      93/98
+Obtient-on les mêmes résultats ?
+      Laissons l’œil juger...
+                              OpenCL           OpenCL
+
+
+
+
+   Séquentiel                EachCircle       EachPixel
+
+                              OpenCL           OpenCL
+
+
+
+
+    OpenMP                  TrajectoPixel   TrajectoCircle
+
+        Emmanuel Quemener
+            12/11/23
+                                            94/98
+            OpenCL sur Threadripper 1950x
+             La méthode de // importante...
+                    BB on Threadripper 1950X with OpenCL                          Mono on Threadripper 1950X
+           3.5E+7                                                        2.5E+8
+                         TrajectoPixel                                             TrajectoPixel
+                         TrajectoCircle                                            TrajectoCircle
+           3.0E+7        EachPixel                                                 EachPixel
+                         EachCircle                                      2.0E+8
+                                                                                   EachCircle
+           2.5E+7        Serial                                                    Serial
+
+                                                                         1.5E+8
+           2.0E+7
+PixHertz
+
+
+
+
+                                                              PixHertz
+           1.5E+7
+                                                                         1.0E+8
+
+           1.0E+7
+
+                                                                         5.0E+7
+           5.0E+6
+
+
+           0.0E+0                                                        0.0E+0
+                   8
+
+                   6
+
+                   2
+                  24
+
+                  48
+
+                  96
+
+                  92
+
+                   4
+                  64
+
+
+
+
+                                                                                64
+
+                                                                                 8
+
+                                                                                 6
+
+                                                                                 2
+                                                                                24
+
+                                                                                48
+
+                                                                                96
+
+                                                                                92
+
+                                                                                 4
+                 38
+                 12
+
+                 25
+
+                 51
+
+
+
+
+                                                                               38
+                                                                               12
+
+                                                                               25
+
+                                                                               51
+                10
+
+                20
+
+                40
+
+                81
+
+
+
+
+                                                                              10
+
+                                                                              20
+
+                                                                              40
+
+                                                                              81
+               16
+
+
+
+
+                                                                             16
+                                Size                                                     Size
+
+
+
+                      TrajectoPixel pour BB, EachCircle pour Mono…
+                                          Emmanuel Quemener
+                                              12/11/23
+                                                                                        95/98
+           OpenCL sur Harpertown E5440x2
+             OpenCL (AMD) pas terrible
+                    BB on Harpertown E5440 with OpenCL                               Mono on Harpertown E5440 with OpenCL
+           7.0E+5                                                               2.5E+7
+                                                    TrajectoPixel                           TrajectoPixel
+                                                    TrajectoCircle                          TrajectoCircle
+           6.0E+5                                   EachPixel                               EachPixel
+                                                    EachCircle                  2.0E+7      EachCircle
+           5.0E+5                                   Serial                                  Serial
+
+
+                                                                                1.5E+7
+           4.0E+5
+PixHertz
+
+
+
+
+                                                                     PixHertz
+           3.0E+5
+                                                                                1.0E+7
+
+           2.0E+5
+
+                                                                                5.0E+6
+           1.0E+5
+
+
+           0.0E+0                                                               0.0E+0
+                   8
+
+
+
+                   2
+                  24
+
+                  48
+
+                  96
+
+                  92
+
+                   4
+
+
+
+
+                                                                                       64
+
+                                                                                        8
+
+
+
+                                                                                        2
+                                                                                       24
+
+                                                                                       48
+
+                                                                                       96
+
+                                                                                       92
+
+                                                                                        4
+                  64
+
+
+
+                   6
+
+
+
+
+                                                                                        6
+                 38
+
+
+
+
+                                                                                      38
+                 12
+
+                 25
+
+                 51
+
+
+
+
+                                                                                      12
+
+                                                                                      25
+
+                                                                                      51
+                10
+
+                20
+
+                40
+
+                81
+
+
+
+
+                                                                                     10
+
+                                                                                     20
+
+                                                                                     40
+
+                                                                                     81
+               16
+
+
+
+
+                                                                                    16
+                              Size                                                              Size
+
+
+                     A chaque processeur, sa courbe de scalabilité...
+                                     Emmanuel Quemener
+                                         12/11/23
+                                                                                               96/98
+                          Parallélisation OpenCL
+                        Pour tous les processeurs...
+                        BB with Serial, OpenMP, OpenCL                                                    Mono with Serial, OpenMP, OpenCL
+
+        ThreadRipper1950X                                                                   ThreadRipper1950X
+              A64X2-5200+                                                                         A64X2-5200+
+                    K7-800
+                   Séquentiel
+                  K6-2-233
+                                                                                                        K7-800
+                                                                                                      K6-2-233
+                                                                                                                               OpenCL
+               Am5x86-133                                                                          Am5x86-133
+
+                   W-2145                                                                              W-2145
+               Gold5122x2                                                                          Gold5122x2
+CPU Systems
+
+
+
+
+                                                                                    CPU Systems
+               Silver4144x2                                                                        Silver4144x2
+              E5-2680v4x2                                                                         E5-2680v4x2
+              E5-2637v4x2                                                                         E5-2637v4x2
+                  X5550x2
+                  E5440x2
+                                                    OpenMP                                            X5550x2
+                                                                                                      E5440x2
+              NorthwoodP4                                                                         NorthwoodP4
+              I80486DX4-75                                          BB_OpenCL                     I80486DX4-75                                Mono_OpenCL
+               I80486SX-25                                          BB_OMP                         I80486SX-25                                Mono_OMP
+               I80386SX-40                                          BB_Serial                      I80386SX-40                                Mono_Serial
+
+                         0E+0.   1E+7.    2E+7.     3E+7.   4E+7.   5E+7.   6E+7.                            0E+0.     1E+8.         2E+8.   3E+8.     4E+8.
+
+                                         PixHertz                                                                         PixHertz
+
+
+
+
+                              OpenCL Intel très efficace avec CPU Intel !
+                                           Emmanuel Quemener
+                                               12/11/23
+                                                                                                                     97/98
+      Pour les processeurs
+Loi de Moore* respectée ! Enfin...
+
+
+
+
+      Performance : x2 tous les 18 mois !
+        Emmanuel Quemener
+            12/11/23
+                                  98/98
+
