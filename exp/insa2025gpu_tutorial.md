@@ -288,3 +288,130 @@ Pour qu'une exécution OpenCL soit efficace, il faudra veiller à :
 
 *Source: Centre Blaise Pascal, ENS de Lyon*
 *Emmanuel Quémener 2022/07/20*
+
+---
+Un intermède CUDA et son implémentation PyCUDA
+
+Nvidia a ressenti tôt la nécessité d'offrir une abstraction de programmation simple pour ses GPU. Elle a même sorti cg-toolkit dès 2002. Il faudra attendre l'été 2007 pour un langage complet, seulement limité à quelques GPU de sa gamme.
+
+Aujourd'hui, CUDA est omniprésent dans les librairies du constructeur mais aussi dans l'immense majorité des autres développements. Cependant, son problème vient de l'adhérence au constructeur : CUDA ne sert QUE pour Nvidia. Nous verrons que CUDA a aussi d'autres inconvénient, mais à l'usage.
+
+L'impressionnant Andreas Kloeckner a aussi développé, en plus de PyOpenCL, PyCUDA pour exploiter CUDA à travers Python avec des approches : c'est PyCUDA.
+
+L'exemple de la page précédente ressemble fortement à celui que nous modifions depuis le début de nos travaux pratiques. Nous allons l'exploiter pour intégrer cette implémentation CUDA dans notre programme MySteps_3.py (copie de MySteps_2.py).
+
+Les modifications du programme MySteps_3.py sont les suivantes :
+
+    créer une fonction Python CudaAddition
+    intégrer les lignes de l'exemple de PyCUDA notamment
+        l'appel des librairies Python
+        le noyau CUDA où la multiplication a été remplacée par l'addition
+        la création du vecteur destination
+        l'appel de l'addition
+    entourer avec une exception le allclose
+        cette précaution permet d'empêcher un plantage
+    dupliquer et adapter à CUDA les éléments de contrôle de cohérence des résultats
+
+Exercice #3.1 :
+
+    Modifiez MySteps_3.py suivant les 3 spécifications ci-dessus
+    Exécutez le programme pour des tailles de vecteurs de 32 à 32768
+    Analysez dans quelles situations des problèmes de produisent
+    Raccordez ces difficultés aux spécifications matérielles
+    Complétez un tableau avec ces résultats
+    Concluez sur l'efficacité de CUDA dans ce cas d'exploitation
+
+Size NativeRate OpenCL Rate CUDA Rate
+3229826168424
+64559240519670
+12812485370404138
+25621913098789270
+512456911411652535
+10248421504531531143
+20481561806286097
+409628633115314923
+819248393997725544
+1638469413612849892
+32768947854851101677
+
+Normalement, si l'implémentation a été correcte, la partie CUDA fonctionne pour les tailles de vecteurs inférieures ou égales à 1024… Cette limitation est en fait dûe à une mauvaise utilisation de CUDA. En effet, CUDA (et dans une moindre mesure OpenCL) comporte 2 étages de parallélisation. Sous OpenCL, ces étages sont les Work Items et les Threads. Sous CUDA, ces étages sont les Blocks et les Threads. Hors, dans les deux approches OpenCL et CUDA, l'étage de parallélisation Threads est l'étage le plus fin, destiné à paralléliser des exécutions éponymes de la programmation parallèle. Mais, comme dans leurs implémentations sur processeurs, la parallélisation par Threads exige une “synchronisation”. Sous les implémentations CUDA et OpenCL, le nombre de threads maximal sollicitable dans un appel est seulement 1024 !
+
+Cette limitation de 1024 Threads entre en contradiction avec le cadre d'utilisation présenté sur les GPU qui veut que le nombre de tâches équivalentes à exécuter est de l'ordre d'au moins plusieurs dizaines de milliers. Donc, il ne faut pas, dans un premier temps, exploiter les Threads en CUDA mais les Blocks.
+
+Il faudra donc modifier le programme MySteps_4.py (copie de MySteps_3.py fonctionnel mais inefficace) pour exploiter les Blocks. Les modifications sont les suivantes :
+
+    remplacer threadIdx par blockIdx dans le noyau CUDA
+    remplacer dans l'appel de sum : block=(a_np.size,1,1) par block=(1,1,1)
+    remplacer dans l'appel de sum : grid=(1,1) par grid=(a_np.size)
+
+Exercice #3.2 :
+
+    Modifiez MySteps_4.py suivant les 3 spécifications ci-dessus
+    Exécutez le programme pour des tailles de vecteurs de 32768 à 268435456
+    Analysez dans quelles situations des problèmes de produisent
+    Raccordez ces difficultés aux spécifications matérielles
+    Complétez un tableau avec ces résultats
+    Concluez sur l'efficacité de CUDA dans ce cas d'exploitation
+
+Size NativeRate OpenCL Rate CUDA Rate
+327689101917449308131182
+65536115011676519975071033
+1310721221679586455109165674
+2621441337605386793248280624
+52428813979804541572131570096
+1048576106982401130607921116513
+209715277532772358317612246784
+4194304517143454118818354384631
+8388608642015438242174678813252
+167772166299685243984549817001502
+335544326455551965771560729982747
+671088646502469008083049350612097
+1342177286544202329900313675783432
+26843545665653126311185899291297615
+
+Nous constatons normalement, avec la sollicitation des blocks et plus des threads, l'implémentation CUDA fonctionne quelle que soit la taille sollicitée. L'implémentation CUDA rattrape l'OpenCL sans jamais la dépasser mais elle reste indigente en comparaison avec la méthode native, mais nous avons déjà vu pourquoi : problème de complexité arithmétique.
+
+Nous allons donc, comme pour OpenCL, augmenter l'intensité arithmétique du traitement en rajoutant l'implémentation CUDA de notre fonction MySillyFunction ajoutée à chacun des termes des vecteurs avant leur addition.
+
+Pour il convient de modifier le code MySteps_5.py (copie de MySteps_4.py) de la manière suivante :
+
+    copier l'implémentation PyCUDA CUDAAddition en CUDASillyAddition
+        cette nouvelle fonction Python sera à modifier pour la suite
+    rajouter la fonction interne MySillyFunction dans le noyau CUDA
+        une fonction interne doit être préfixée par device
+    rajouter la fonction sillysum appelée par Python dans le noyau CUDA
+    rajouter la synthèse de la fonction sillysum comparable à sum
+    modifier l'appel de la fonction PyCUDA de sum en sillysum
+    intrumenter temporellement chaque ligne de CUDASillyAddition
+    modifier les appels de fonction Addition en SillyAddition
+        pour les 3 implémentations Native, OpenCL et CUDA
+
+Exercice #3.3 :
+
+    Modifiez MySteps_5.py suivant les 7 spécifications ci-dessus
+    Exécutez le programme pour des tailles de vecteurs de 32768 à 268435456
+    Complétez un tableau avec ces résultats
+    Concluez sur l'efficacité de CUDA dans ce cas d'exploitation
+
+Size NativeRate OpenCL Rate CUDA Rate OpenCL ratio CUDA ratio
+327681220822104351292760.0854760.023981
+655361220648209305692710.1714700.056749
+13107212304763931871402550.3195410.113984
+26214412486958841812980470.7080840.238687
+524288144790517907265742881.2367700.396634
+10485761444680340192211182882.3547930.774073
+20971521484030698843020565604.7090891.385794
+419430415255601320846736060818.6581102.363775
+8388608147851422047721510622014.9120813.453616
+16777216148411937736167722871725.4266454.870713
+33554432148458154005921929168136.3778886.258790
+671088641484264752647941055240150.7084957.109518
+1342177281486942852220661135268757.3136457.634923
+26843545614856321025639441214932869.0372478.177885
+
+Les gains sont substantiels en CUDA mais restent quand même bien en dessous de OpenCL. Pour augmenter l'efficacité de CUDA, il conviendra d'augmenter la complexité arithmétique de manière très substantielle. Par exemple, en multipliant par 16 cette complexité (en appelant par exemple 16 fois successivement cette fonction MySillyFunction), le NativeRate se divise par 16 mais le OpenCLRate ne se divise que par 2. L'implémentation CUDA, quand à elle, augmente de 60% !
+
+Pour conclure sue ce petit intermède CUDA se trouvent les programmes MySteps_5b.py et MySteps_5c.py dérivés de MySteps_5.py :
+
+    MySteps_5b.py : intègre une utilisation hybride des Blocks et des Threads
+    MySteps_5c.py : augmente la complexité arithmétique d'un facteur 16
