@@ -1,0 +1,4 @@
+/home/hzhang02/miniconda3/lib/python3.13/site-packages/pyopencl/cache.py:420: CompilerWarning: Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.
+  prg.build(options_bytes, [devices[i] for i in to_be_built_indices])
+[0. 0. 0. ... 0. 0. 0.]
+0.0

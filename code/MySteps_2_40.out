@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/home/hzhang02/Desktop/GPU_1/code/MySteps_2.py", line 79, in <module>
+    res_cl = OpenCLAddition(a_np, b_np)
+  File "/home/hzhang02/Desktop/GPU_1/code/MySteps_2.py", line 34, in OpenCLAddition
+    ctx = cl.create_some_context()
+  File "/home/hzhang02/miniconda3/lib/python3.13/site-packages/pyopencl/__init__.py", line 927, in create_some_context
+    devices = choose_devices(interactive, answers)
+  File "/home/hzhang02/miniconda3/lib/python3.13/site-packages/pyopencl/__init__.py", line 881, in choose_devices
+    raise Error("no devices found")
+pyopencl._cl.Error: no devices found
