@@ -1,0 +1,29 @@
+/home/hzhang02/miniconda3/lib/python3.13/site-packages/pyopencl/cache.py:496: CompilerWarning: Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.
+  _create_built_program_from_source_cached(
+/home/hzhang02/miniconda3/lib/python3.13/site-packages/pyopencl/cache.py:500: CompilerWarning: Non-empty compiler output encountered. Set the environment variable PYOPENCL_COMPILER_OUTPUT=1 to see more.
+  prg.build(options_bytes, devices)
+========================================
+向量大小: 32768
+========================================
+
+执行本地计算（Numpy）...
+  执行时间: 0.000016 秒
+  性能速率: 2051327664 元素/秒
+  性能速率: 2051.33 M元素/秒
+
+执行OpenCL计算...
+  执行时间: 0.136062 秒
+  性能速率: 240832 元素/秒
+  性能速率: 0.24 M元素/秒
+
+========================================
+性能分析
+========================================
+OpenCL/Native 性能比率: 0.000117
+  -> Native 比 OpenCL 快 8517.67 倍
+时间比率: 8517.671642
+========================================
+
+结果验证:
+  差值范数: 0.0
+  ✓ 计算成功！OpenCL结果与Numpy结果一致。
